@@ -1,0 +1,18 @@
+<html>
+    <head>
+        <title>{% block title %}{% endblock %}</title>
+    </head>
+    <body>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index')}}">home</a></li>
+                <li>login</li>
+                <li>register</li>
+            </ul>
+        </nav>
+        <header>
+            {% block header %}{% endblock %}
+        </header>
+        {% block content %}{% endblock %}
+    </body>
+</html>
