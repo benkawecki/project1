@@ -6,13 +6,13 @@
         <nav>
             <ul>
                 <li><a href="{{ url_for('index')}}">home</a></li>
-                <li>login</li>
-                <li>register</li>
+                <li><a href="{{ url_for('login')}}">login</a></li>
+                <li><a href="{{ url_for('register')}}">register</a></li>
             </ul>
         </nav>
         <header>
             {% block header %}{% endblock %}
         </header>
         {% block content %}{% endblock %}
-    </body>
+    </body> 
 </html>

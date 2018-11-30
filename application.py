@@ -1,9 +1,10 @@
 import os
 
-from flask import Flask, session, request, render_template
+from flask import Flask, session, request, render_template, flash
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
 
@@ -39,12 +40,18 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        error = None
 
         if username is None:
             error = 'username is required'
         elif password is None:
             error = 'password is requred'
-        elif False:
-            pass
+        elif db.execute("SELECT id IN users WHERE username = (?) ", (username,)) is not None:
+            error = f"username {username} already registered"
 
-    return 'register'
+        if error is None:
+            db.execute("INSERT INTO users (username, pw) VALUES (?, ?)",
+                      (username, generate_password_hash(password)))
+
+
+    return render_template('register.html')
