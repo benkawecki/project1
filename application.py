@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, session, request, render_template, flash
+from flask import Flask, session, request, render_template, flash, redirect, url_for
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -27,15 +27,30 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/login')
+@app.route('/login', methods=("GET", "POST"))
 def login():
-    name = request.form.get("Name")
-    pw = request.form.get("Password")
-    db.execute(f"SELECT ")
-    return 'login'
+    # TODO: logic for if a user is already in session
+    if request.method == "POST":
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        error = ''
+        if username is None:
+            error = 'username is required'
+        elif password is None:
+            error = 'password is requred'
+        elif db.execute("SELECT id FROM users WHERE username = :un and pw = :pw;",
+                        {'un': username,
+                         'pw': generate_password_hash(password)
+                         }).fetchone() is not None:
+            error = f"Welcome back {username}"
+            flash(f'Welcome back {username}!')
+            return redirect(url_for('index'))
+        flash(error)
+    return render_template('login.html')
 
 
-@app.route('/register')
+@app.route('/register', methods=("GET", "POST"))
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -46,12 +61,15 @@ def register():
             error = 'username is required'
         elif password is None:
             error = 'password is requred'
-        elif db.execute("SELECT id IN users WHERE username = (?) ", (username,)) is not None:
+        elif db.execute("SELECT id FROM users WHERE username = :un;",
+                        {'un': username}).fetchone() is not None:
             error = f"username {username} already registered"
 
         if error is None:
-            db.execute("INSERT INTO users (username, pw) VALUES (?, ?)",
-                      (username, generate_password_hash(password)))
+            db.execute("INSERT INTO users (username, pw) VALUES (:un, :pw)",
+                       {'un': username, 'pw': generate_password_hash(password)})
+            db.commit()
+            return redirect(url_for('login'))
 
-
+        flash(error)
     return render_template('register.html')
